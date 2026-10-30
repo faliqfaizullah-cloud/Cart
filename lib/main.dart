@@ -30,7 +30,7 @@ List<List<Object>> scanFn(String root) {
             if ((md.title ?? '').isNotEmpty) t = md.title!;
             if ((md.artist ?? '').isNotEmpty) a = md.artist!;
             if ((md.album ?? '').isNotEmpty) al = md.album!;
-            g = (md.genre ?? '').trim();
+            try { g = ((md as dynamic).genre ?? '').toString().trim(); } catch (_) {}
           } catch (_) {}
           out.add([e.path, t, a, al, g, File(e.path).lastModifiedSync().millisecondsSinceEpoch]);
         }
@@ -319,10 +319,10 @@ class _H extends State<Home> {
         animation: Lib.i,
         builder: (_, __) {
           final L = Lib.i, cnt = <String, int>{};
-          for (final s in L.songs) { if (s.genre.isNotEmpty) cnt[s.genre] = (cnt[s.genre] ?? 0) + 1; }
+          final byG = L.songs.any((s) => s.genre.isNotEmpty); for (final s in L.songs) { final k = byG ? s.genre : s.artist; if (k.isNotEmpty) cnt[k] = (cnt[k] ?? 0) + 1; }
           final g = (cnt.keys.toList()..sort((a, b) => cnt[b]!.compareTo(cnt[a]!))).take(4).toList();
           final tabs = ['All', ...g]; if (tab >= tabs.length) tab = 0;
-          final list = L.songs.where((s) => (tab == 0 || s.genre == tabs[tab]) && (q.isEmpty || '${s.title} ${s.artist}'.toLowerCase().contains(q.toLowerCase()))).toList();
+          final list = L.songs.where((s) => (tab == 0 || (byG ? s.genre : s.artist) == tabs[tab]) && (q.isEmpty || '${s.title} ${s.artist}'.toLowerCase().contains(q.toLowerCase()))).toList();
           final feat = (List<Song>.of(list)..shuffle(m.Random(spin))).take(8).toList();
           final rec = L.recents;
           final now = DateTime.now().millisecondsSinceEpoch;
